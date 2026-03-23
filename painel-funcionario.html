@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel do Funcionário</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        input, textarea, button { padding: 10px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { background-color: #2196F3; color: white; border: none; cursor: pointer; font-weight: bold; }
+        .card { border-left: 5px solid #2196F3; padding: 15px; background: #f9f9f9; margin-top: 15px; }
+        .sessao { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Área do Funcionário</h1>
+    <button onclick="sair()" style="background: red; width: auto;">Sair</button>
+
+    <div class="sessao">
+        <h2>Cadastrar Nova Amostra</h2>
+        <input type="text" id="cad-nome" placeholder="Nome do Cliente">
+        <input type="text" id="cad-cpf" placeholder="CPF do Cliente">
+        <input type="text" id="cad-end" placeholder="Endereço">
+        <input type="date" id="cad-data">
+        <textarea id="cad-obs" placeholder="Observações da amostra..."></textarea>
+        <button onclick="salvarAmostra()" style="background: #4CAF50;">Salvar Amostra</button>
+    </div>
+
+    <div class="sessao">
+        <h2>Pesquisar Amostras</h2>
+        <input type="text" id="busca-cpf" placeholder="Digite o CPF do cliente">
+        <button onclick="pesquisar()">Pesquisar</button>
+        <div id="resultado-busca"></div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token_lab');
+    if(!token) window.location.href = 'index.html';
+
+    async function salvarAmostra() {
+        const dados = {
+            nome: document.getElementById('cad-nome').value,
+            cpf: document.getElementById('cad-cpf').value,
+            endereco: document.getElementById('cad-end').value,
+            data_recebimento: document.getElementById('cad-data').value,
+            observacoes: document.getElementById('cad-obs').value
+        };
+
+        const res = await fetch('http://localhost:3000/api/amostras', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': token },
+            body: JSON.stringify(dados)
+        });
+        const data = await res.json();
+        alert(data.mensagem);
+    }
+
+    async function pesquisar() {
+        const cpf = document.getElementById('busca-cpf').value;
+        const res = await fetch(`http://localhost:3000/api/amostras/busca/${cpf}`, { headers: { 'Authorization': token } });
+        const amostras = await res.json();
+        
+        const div = document.getElementById('resultado-busca');
+        div.innerHTML = '';
+        if(amostras.length === 0) return div.innerHTML = '<p>Nenhuma amostra encontrada.</p>';
+
+        amostras.forEach(a => {
+            div.innerHTML += `
+                <div class="card">
+                    <p><strong>Data:</strong> ${a.data_recebimento}</p>
+                    <p><strong>Cliente:</strong> ${a.nome} (CPF: ${a.cpf})</p>
+                    <p><strong>Endereço:</strong> ${a.endereco}</p>
+                    <p><strong>Obs:</strong> ${a.observacoes}</p>
+                </div>
+            `;
+        });
+    }
+
+    function sair() { localStorage.clear(); window.location.href = 'index.html'; }
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Minhas Amostras</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; }
+        .card { border-left: 5px solid #4CAF50; padding: 15px; background: #f9f9f9; margin-bottom: 15px; }
+        button { background: red; color: white; padding: 10px; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Minhas Amostras de Solo</h1>
+    <button onclick="sair()">Sair</button>
+    <div id="lista" style="margin-top: 20px;"></div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token_lab');
+    if(!token) window.location.href = 'index.html';
+
+    async function carregar() {
+        const res = await fetch('http://localhost:3000/api/amostras/cliente', { headers: { 'Authorization': token } });
+        const amostras = await res.json();
+        
+        const lista = document.getElementById('lista');
+        if(amostras.length === 0) return lista.innerHTML = '<p>Nenhuma amostra encontrada.</p>';
+
+        amostras.forEach(a => {
+            lista.innerHTML += `
+                <div class="card">
+                    <p><strong>Data de Entrega:</strong> ${a.data_recebimento}</p>
+                    <p><strong>Cliente:</strong> ${a.nome} (CPF: ${a.cpf})</p>
+                    <p><strong>Endereço:</strong> ${a.endereco}</p>
+                    <p><strong>Observações:</strong> ${a.observacoes}</p>
+                </div>
+            `;
+        });
+    }
+
+    function sair() { localStorage.clear(); window.location.href = 'index.html'; }
+    carregar();
+</script>
+</body>
+</html>
